@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import { 
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator 
+} from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 
@@ -15,6 +17,10 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
       Alert.alert('Error', 'All fields are required.');
       return;
     }
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters.');
+      return;
+    }
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match.');
       return;
@@ -24,6 +30,9 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
       setLoading(true);
       const userCredential = await auth().createUserWithEmailAndPassword(email, password);
       const user = userCredential.user;
+
+      // Set display name in Firebase Auth
+      await user.updateProfile({ displayName: fullName });
 
       // Store additional user data in Firestore
       await firestore().collection('users').doc(user.uid).set({
@@ -35,7 +44,15 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
       Alert.alert('Success', 'Account created successfully!');
       navigation.replace('Login'); // Navigate to login screen
     } catch (error: any) {
-      Alert.alert('Sign Up Failed', error.message);
+      let errorMessage = 'Sign Up Failed. Please try again.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already in use.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email format.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password must be at least 6 characters.';
+      }
+      Alert.alert('Sign Up Failed', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -57,6 +74,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
         placeholder="Email"
         style={styles.input}
         keyboardType="email-address"
+        autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
       />
@@ -75,8 +93,12 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
         onChangeText={setConfirmPassword}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Signing Up...' : 'Sign Up'}</Text>
+      <TouchableOpacity 
+        style={[styles.button, loading && styles.disabledButton]} 
+        onPress={handleSignUp} 
+        disabled={loading}
+      >
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -88,7 +110,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
 
 export default SignUpScreen;
 
-// Styles remain the same
+// Styles remain the same with slight improvements
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -126,6 +148,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: '80%',
     alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#A0A0A0',
   },
   buttonText: {
     color: '#FFF',

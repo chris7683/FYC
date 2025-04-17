@@ -11,20 +11,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged(user => {
-      if (user) {
-        navigation.replace('Dashboard'); // Navigate to main screen if logged in
-      } else {
+      try {
+        if (user) {
+          navigation.replace('Dashboard'); // Navigate if user is authenticated
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Auth state check error:', error); // Handle errors here
         setLoading(false);
       }
     });
 
-    return unsubscribe;
+    return unsubscribe; // Clean up listener when component unmounts
   }, [navigation]);
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#007BFF" />
+        <ActivityIndicator size="large" color="#007BFF" />
       </View>
     );
   }
@@ -32,7 +37,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Image source={require('../../assets/logo.png')} style={styles.logo} />
-      <Text style={styles.title}>Welcome to FYI</Text>
+      <Text style={styles.title}>Welcome to FYC</Text>
       <Text style={styles.subtitle}>Your designated to-do list app</Text>
 
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
@@ -47,7 +52,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ADD8E6',
+    backgroundColor: '#f8f9fa',
     paddingHorizontal: 20,
   },
   loadingContainer: {
