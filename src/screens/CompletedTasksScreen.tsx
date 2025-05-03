@@ -84,7 +84,7 @@ const CompletedTasksScreen = () => {
       </View>
 
       {/* Date Navigation */}
-      <View style={styles.dateNav}>
+      <View style={[styles.dateNav, theme === "dark" && styles.darkHeader]}>
         <TouchableOpacity onPress={goToPreviousDay} style={styles.navButton}>
           <Text style={styles.navText}>←</Text>
         </TouchableOpacity>
@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     backgroundColor: "#fff",
   },
+
   navButton: {
     backgroundColor: "#007bff",
     padding: 10,
@@ -166,9 +167,7 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 18,
     fontWeight: "bold",
-  },
-  darkText: {
-    color: "#f8f9fa",
+    color: "#212529",
   },
 
   noTasks: {
@@ -196,6 +195,10 @@ const styles = StyleSheet.create({
   taskText: {
     fontSize: 16,
     fontWeight: "500",
+    color: "#212529",
+  },
+  darkText: {
+    color: "#f8f9fa",
   },
 })
 
